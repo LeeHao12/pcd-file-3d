@@ -1,34 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useEffect } from "react";
+import * as THREE from "three";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+function resizeRendererToDisplaySize(renderer: THREE.WebGLRenderer) {
+  const canvas = renderer.domElement;
+  const pixelRatio = window.devicePixelRatio;
 
-  return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+  const width = (canvas.clientWidth * pixelRatio) | 0;
+  const height = (canvas.clientHeight * pixelRatio) | 0;
+
+  const needResize = canvas.width !== width || canvas.height !== height;
+
+  if (needResize) {
+    renderer.setSize(width, height, false);
+  }
+
+  return needResize;
 }
 
-export default App
+function App() {
+  useEffect(() => {
+    const canvas: any = document.querySelector("#c");
+    const renderer = new THREE.WebGLRenderer({ canvas });
+
+    const scene = new THREE.Scene();
+
+    const fov = 75;
+    const aspect = 2;
+    const near = 0.1;
+    const far = 5;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.z = 2;
+
+    if (resizeRendererToDisplaySize(renderer)) {
+      const canvasDom = renderer.domElement;
+      camera.aspect = canvasDom.clientWidth / canvasDom.clientHeight;
+      camera.updateProjectionMatrix();
+    }
+
+    const boxWidth = 1;
+    const boxHeight = 1;
+    const boxDepth = 1;
+    const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+    const material = new THREE.MeshBasicMaterial({ color: 0x44aa88 });
+    const cube = new THREE.Mesh(geometry, material);
+
+    scene.add(cube);
+
+    renderer.render(scene, camera);
+  }, []);
+
+  return <canvas id="c" />;
+}
+
+export default App;
